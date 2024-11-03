@@ -13,3 +13,4 @@
 - CRUD's APIs for RBAC model with relationship and soft-delete
 - RBAC Authorization & JWT Authentication support: Sign-up
 - APIs Discoverability with HATEOAS
+- APIs Documentation with Swagger OpenAPI version 3
