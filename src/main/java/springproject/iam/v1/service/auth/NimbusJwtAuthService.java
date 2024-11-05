@@ -21,36 +21,37 @@ import springproject.iam.v1.model.dto.auth.CredentialResponse;
 import springproject.iam.v1.model.dto.auth.RegisterRequest;
 import springproject.iam.v1.model.dto.auth.RegisterResponse;
 import springproject.iam.v1.model.dto.badcredential.BadCredentialCreation;
-import springproject.iam.v1.model.dto.badcredential.BadCredentialResponse;
+import springproject.iam.v1.model.dto.badcredentialcache.BadCredentialCacheCreation;
+import springproject.iam.v1.model.dto.badcredentialcache.BadCredentialCacheResponse;
 import springproject.iam.v1.model.dto.user.UserCreation;
 import springproject.iam.v1.model.dto.user.UserResponse;
-import springproject.iam.v1.service.badcredential.AbstractBadCredentialService;
+import springproject.iam.v1.service.badcredentialcache.AbstractBadCredentialCacheService;
 import springproject.iam.v1.service.user.AbstractUserService;
 import springproject.iam.v1.token.AbstractJWTAuthProvider;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class JwtAuthService implements AbstractJwtAuthService {
+public class NimbusJwtAuthService implements AbstractJwtAuthService {
   @NonFinal
-  @Value("${jwt.access-token-secret}")
+  @Value("${jwt.access-token.secret}")
   String accessTokenSecret;
 
   @NonFinal
-  @Value("${jwt.access-token-life-time}")
-  long accessTokenLifeTime;
+  @Value("${jwt.access-token.time-to-live}")
+  long accessTokenTimeToLive;
 
   @NonFinal
-  @Value("${jwt.refresh-token-secret}")
+  @Value("${jwt.refresh-token.secret}")
   String refreshTokenSecret;
 
   @NonFinal
-  @Value("${jwt.refresh-token-life-time}")
-  long refreshTokenLifeTime;
+  @Value("${jwt.refresh-token.time-to-live}")
+  long refreshTokenTimeToLive;
 
   AbstractJWTAuthProvider<SignedJWT, UserResponse> jwtAuthProvider;
   AbstractUserService jpaUserService;
-  AbstractBadCredentialService jpaBadCredentialService;
+  AbstractBadCredentialCacheService redisBadCredentialCacheService;
   AuthMapper authMapper;
   PasswordEncoder passwordEncoder;
 
@@ -58,10 +59,10 @@ public class JwtAuthService implements AbstractJwtAuthService {
     String accessId = UUID.randomUUID().toString();
     String refreshId = UUID.randomUUID().toString();
     String accessToken =
-        jwtAuthProvider.sign(user, accessTokenLifeTime, accessTokenSecret, accessId, refreshId);
+        jwtAuthProvider.sign(user, accessTokenTimeToLive, accessTokenSecret, accessId, refreshId);
     long accessTokenIssuedAt = System.currentTimeMillis();
     String refreshToken =
-        jwtAuthProvider.sign(user, refreshTokenLifeTime, refreshTokenSecret, refreshId, accessId);
+        jwtAuthProvider.sign(user, refreshTokenTimeToLive, refreshTokenSecret, refreshId, accessId);
     long refreshTokenIssuedAt = System.currentTimeMillis();
     return new CredentialResponse(
         accessToken, accessTokenIssuedAt, refreshToken, refreshTokenIssuedAt);
@@ -73,6 +74,15 @@ public class JwtAuthService implements AbstractJwtAuthService {
     String accessTokenId = accessSignedJWT.getJWTClaimsSet().getJWTID();
     Date accessTokenExpiredAt = accessSignedJWT.getJWTClaimsSet().getExpirationTime();
     return new BadCredentialCreation(accessTokenId, accessTokenExpiredAt, userId);
+  }
+
+  public BadCredentialCacheCreation asBadCredentialCacheCreation(String accessToken)
+      throws ParseException {
+    SignedJWT accessSignedJWT = jwtAuthProvider.verify(accessToken, accessTokenSecret);
+    Long userId = (Long) accessSignedJWT.getJWTClaimsSet().getClaim("userId");
+    String accessTokenId = accessSignedJWT.getJWTClaimsSet().getJWTID();
+    Date accessTokenExpiredAt = accessSignedJWT.getJWTClaimsSet().getExpirationTime();
+    return new BadCredentialCacheCreation(accessTokenId, accessTokenExpiredAt, userId);
   }
 
   @Override
@@ -119,7 +129,7 @@ public class JwtAuthService implements AbstractJwtAuthService {
       if (!refreshTokenId.equals(accessReferId)) {
         throw new ServiceException(Failed.JWT_TOKEN_NOT_SUITABLE);
       }
-      jpaBadCredentialService.ensureNotBadCredential(accessToken);
+      redisBadCredentialCacheService.ensureNotBadCredential(accessToken);
       return true;
     } catch (ServiceException e) {
       throw e;
@@ -151,8 +161,8 @@ public class JwtAuthService implements AbstractJwtAuthService {
           ((JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication())
               .getToken()
               .getTokenValue();
-      BadCredentialCreation creation = this.asBadCredentialCreation(accessToken);
-      BadCredentialResponse saved = jpaBadCredentialService.save(creation);
+      BadCredentialCacheCreation creation = this.asBadCredentialCacheCreation(accessToken);
+      BadCredentialCacheResponse saved = redisBadCredentialCacheService.save(creation);
       return saved.getId();
     } catch (ServiceException e) {
       throw e;
@@ -166,8 +176,8 @@ public class JwtAuthService implements AbstractJwtAuthService {
   public CredentialResponse refresh(String accessToken, String refreshToken) {
     try {
       this.identity(accessToken, refreshToken);
-      BadCredentialCreation creation = this.asBadCredentialCreation(accessToken);
-      jpaBadCredentialService.save(creation);
+      BadCredentialCacheCreation creation = this.asBadCredentialCacheCreation(accessToken);
+      redisBadCredentialCacheService.save(creation);
       UserResponse user = jpaUserService.findById(creation.getUserId());
       return this.newCredentials(user);
     } catch (ServiceException e) {

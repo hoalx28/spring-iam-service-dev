@@ -1,7 +1,6 @@
 package springproject.iam.v1.service.badcredential;
 
 import com.nimbusds.jwt.SignedJWT;
-import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -12,12 +11,10 @@ import springproject.iam.v1.constant.Failed;
 import springproject.iam.v1.exception.ServiceException;
 import springproject.iam.v1.mapper.struct.BadCredentialMapper;
 import springproject.iam.v1.model.BadCredential;
-import springproject.iam.v1.model.User;
 import springproject.iam.v1.model.dto.badcredential.BadCredentialCreation;
 import springproject.iam.v1.model.dto.badcredential.BadCredentialResponse;
 import springproject.iam.v1.model.dto.user.UserResponse;
 import springproject.iam.v1.repository.badcredential.JpaBadCredentialRepository;
-import springproject.iam.v1.repository.user.JpaUserRepository;
 import springproject.iam.v1.token.AbstractJWTAuthProvider;
 
 @Service
@@ -25,12 +22,11 @@ import springproject.iam.v1.token.AbstractJWTAuthProvider;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class JpaBadCredentialService implements AbstractBadCredentialService {
   @NonFinal
-  @Value("${jwt.access-token-secret}")
+  @Value("${jwt.access-token.secret}")
   String accessTokenSecret;
 
   AbstractJWTAuthProvider<SignedJWT, UserResponse> jwtAuthProvider;
   JpaBadCredentialRepository jpaBadCredentialRepository;
-  JpaUserRepository jpaUserRepository;
   BadCredentialMapper badCredentialMapper;
 
   @Override
@@ -54,11 +50,6 @@ public class JpaBadCredentialService implements AbstractBadCredentialService {
   public BadCredentialResponse save(BadCredentialCreation creation) {
     try {
       BadCredential model = badCredentialMapper.asModel(creation);
-      Optional<User> owning = jpaUserRepository.findById(creation.getUserId());
-      if (!owning.isPresent()) {
-        throw new ServiceException(Failed.OWNING_SIDE_NOT_EXISTS);
-      }
-      model.setUser(owning.get());
       BadCredential saved = jpaBadCredentialRepository.save(model);
       return badCredentialMapper.asResponse(saved);
     } catch (ServiceException e) {

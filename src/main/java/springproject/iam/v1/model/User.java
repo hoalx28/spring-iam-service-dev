@@ -67,7 +67,4 @@ public class User implements Serializable {
   @ManyToMany
   @SoftDelete(strategy = SoftDeleteType.ACTIVE, converter = NumericBooleanConverter.class)
   Set<Role> roles;
-
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  Set<BadCredential> badCredentials;
 }

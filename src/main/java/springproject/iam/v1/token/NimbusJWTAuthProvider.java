@@ -27,7 +27,7 @@ import springproject.iam.v1.model.dto.user.UserResponse;
 @Component
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class JWTAuthProvider implements AbstractJWTAuthProvider<SignedJWT, UserResponse> {
+public class NimbusJWTAuthProvider implements AbstractJWTAuthProvider<SignedJWT, UserResponse> {
   @Override
   public String buildScope(UserResponse user) {
     StringJoiner stringJoiner = new StringJoiner(" ");

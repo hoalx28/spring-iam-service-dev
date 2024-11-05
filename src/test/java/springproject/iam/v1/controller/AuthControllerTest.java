@@ -26,7 +26,7 @@ import springproject.iam.v1.exception.GlobalException;
 import springproject.iam.v1.exception.ServiceException;
 import springproject.iam.v1.model.dto.auth.CredentialResponse;
 import springproject.iam.v1.model.dto.auth.RegisterRequest;
-import springproject.iam.v1.service.auth.JwtAuthService;
+import springproject.iam.v1.service.auth.NimbusJwtAuthService;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -37,7 +37,7 @@ class AuthControllerTest {
   @Autowired MockMvc mockMvc;
   @Autowired ObjectMapper objectMapper;
 
-  @MockBean JwtAuthService jwtAuthService;
+  @MockBean NimbusJwtAuthService nimbusJwtAuthService;
 
   RegisterRequest registerRequest;
   CredentialResponse credentialResponse;
@@ -53,7 +53,7 @@ class AuthControllerTest {
   @Test
   @Order(1)
   void signUp_givenLegal_whenSignUp_thenSave() throws Exception {
-    when(jwtAuthService.signUp(registerRequest)).thenReturn(credentialResponse);
+    when(nimbusJwtAuthService.signUp(registerRequest)).thenReturn(credentialResponse);
     mockMvc
         .perform(
             MockMvcRequestBuilders.post("/api/v1/auth/sign-up")
@@ -125,7 +125,7 @@ class AuthControllerTest {
   void signUp_givenUsernameAlreadyExists_whenSignUp_thenBadRequest() throws Exception {
     registerRequest.setUsername("hoalx1");
     registerRequest.setUsername("hoalx1");
-    when(jwtAuthService.signUp(registerRequest))
+    when(nimbusJwtAuthService.signUp(registerRequest))
         .thenThrow(new ServiceException(Failed.ALREADY_EXISTED));
     mockMvc
         .perform(

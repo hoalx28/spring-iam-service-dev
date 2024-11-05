@@ -6,8 +6,6 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -25,7 +23,7 @@ import org.hibernate.validator.constraints.UUID;
 import springproject.iam.v1.introspector.BadCredentialIntrospector;
 
 @Data
-@EqualsAndHashCode(exclude = {"user"})
+@EqualsAndHashCode(exclude = {})
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -46,7 +44,6 @@ public class BadCredential implements Serializable {
   @NotNull(message = "accessTokenExpiredAt can not be blank") @Column(name = "access_token_expired_at", nullable = false)
   Date accessTokenExpiredAt;
 
-  @ManyToOne
-  @JoinColumn(name = "user_id")
-  User user;
+  @NotNull(message = "userId can not be blank") @Column(name = "user_id", nullable = false)
+  Long userId;
 }

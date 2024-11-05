@@ -29,9 +29,9 @@ import springproject.iam.v1.service.user.AbstractUserService;
 @TestPropertySource("classpath:application-test.properties")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class JwtAuthServiceTest {
+class NimbusNimbusJwtAuthServiceTest {
   @Autowired AuthMapper authMapper;
-  @Autowired JwtAuthService jwtAuthService;
+  @Autowired NimbusJwtAuthService nimbusJwtAuthService;
 
   @MockBean AbstractUserService jpaUserService;
 
@@ -56,7 +56,7 @@ class JwtAuthServiceTest {
   @Order(1)
   void signUp_givenLegal_whenSignUp_thenSuccess() {
     when(jpaUserService.save(authMapper.asUserCreation(registerRequest))).thenReturn(userResponse);
-    CredentialResponse returnCredential = jwtAuthService.signUp(registerRequest);
+    CredentialResponse returnCredential = nimbusJwtAuthService.signUp(registerRequest);
     Assertions.assertThat(returnCredential.getAccessToken()).isNotEmpty();
     Assertions.assertThat(returnCredential.getRefreshToken()).isNotEmpty();
   }
@@ -67,7 +67,7 @@ class JwtAuthServiceTest {
     registerRequest.setUsername("hoalx2");
     when(jpaUserService.save(authMapper.asUserCreation(registerRequest)))
         .thenThrow(ServiceException.class);
-    assertThrows(ServiceException.class, () -> jwtAuthService.signUp(registerRequest));
+    assertThrows(ServiceException.class, () -> nimbusJwtAuthService.signUp(registerRequest));
   }
 
   @Test
@@ -77,7 +77,7 @@ class JwtAuthServiceTest {
     when(jpaUserService.save(authMapper.asUserCreation(registerRequest)))
         .thenThrow(RuntimeException.class);
     ServiceException exception =
-        assertThrows(ServiceException.class, () -> jwtAuthService.signUp(registerRequest));
+        assertThrows(ServiceException.class, () -> nimbusJwtAuthService.signUp(registerRequest));
     Assertions.assertThat(exception.getFailed()).isEqualByComparingTo(Failed.SIGN_UP);
   }
 }

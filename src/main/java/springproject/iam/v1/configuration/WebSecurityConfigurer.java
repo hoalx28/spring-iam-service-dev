@@ -25,10 +25,15 @@ import springproject.iam.v1.exception.JwtAuthenticationEntryPoint;
 @CrossOrigin
 public class WebSecurityConfigurer {
   private String[] publicEndpoints = {
-    "/api/v1/auth/sign-in", "/api/v1/auth/sign-up", "/v3/api-docs/**", "/swagger-ui/**"
+    "/api/v1/auth/sign-in",
+    "/api/v1/auth/sign-up",
+    "/v3/api-docs/**",
+    "/swagger-ui/**",
+    "/api/v1/privileges",
+    "/api/v1/roles"
   };
 
-  @Value("${jwt.access-token-secret}")
+  @Value("${jwt.access-token.secret}")
   private String accessTokenSecret;
 
   @Bean
