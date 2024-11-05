@@ -61,7 +61,11 @@ public enum Failed {
   SIGN_OUT(1, "can not sign out: token not be recalled.", HttpStatus.INTERNAL_SERVER_ERROR),
   REFRESH_JWT_TOKEN(1, "can not refresh token: try again later.", HttpStatus.INTERNAL_SERVER_ERROR),
   RETRIEVE_PROFILE(
-      1, "can not retrieve profile: try again later.", HttpStatus.INTERNAL_SERVER_ERROR);
+      1, "can not retrieve profile: try again later.", HttpStatus.INTERNAL_SERVER_ERROR),
+  MAIL_DELIVERY(
+      1,
+      "mail delivery failed: make sure you type correct address and content encoding was supported.",
+      HttpStatus.INTERNAL_SERVER_ERROR);
 
   int code;
   String message;
