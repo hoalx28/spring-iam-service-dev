@@ -1,19 +1,24 @@
-# Simple IAM Service using Spring Framework:
+# Simple IAM Service using Spring Framework
 
-## Tech Stack:
+## Tech Stack
+
 * Language: Java 17
 * Build-tool: Maven
 * Spring Starters: Boot, Data JPA, Security, HATEOAS, OAuth Resource Service, Validation, Test
 * DBMS: MySQL, H2
-* Testing: Jacoco 
+* Testing: Jacoco
 * API Document: Swagger OpenAPI
 * Plugin: Spotless
 
-## Feature:
-- CRUD's APIs for RBAC model with relationship and soft-delete
-- RBAC Authorization & JWT Authentication support: Sign-up
-- APIs Discoverability with HATEOAS
-- APIs Documentation with Swagger OpenAPI version 3
+## Feature
 
-## Testing:
-- Testing integration with Unit Test
+* CRUD's APIs for RBAC model with relationship and soft-delete
+* RBAC Authorization & JWT Authentication support: Sign-up
+* APIs Discoverability with HATEOAS
+* APIs Documentation with Swagger OpenAPI version 3
+
+## Testing
+
+* Testing integration with Unit Test
+
+## Wanna know more about this project: <sup><small>refer below tags</small></sup>
