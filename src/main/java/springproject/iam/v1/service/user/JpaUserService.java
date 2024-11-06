@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import springproject.iam.v1.constant.Failed;
@@ -30,6 +32,14 @@ public class JpaUserService implements AbstractUserService {
   JpaUserRepository jpaUserRepository;
   JpaRoleRepository jpaRoleRepository;
   UserMapper userMapper;
+
+  @Override
+  public UserDetailsService userDetailsService() {
+    return username ->
+        jpaUserRepository
+            .findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException(Failed.BAD_CREDENTIALS.getMessage()));
+  }
 
   @Override
   public void ensureNotExistedByUsername(String username) {

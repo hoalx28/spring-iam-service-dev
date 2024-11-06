@@ -74,7 +74,10 @@ public class NimbusJWTAuthProvider implements AbstractJWTAuthProvider<SignedJWT,
     try {
       JWSVerifier verifier = new MACVerifier(secretKey.getBytes());
       SignedJWT signedJWT = SignedJWT.parse(token);
-      signedJWT.verify(verifier);
+      boolean isVerify = signedJWT.verify(verifier);
+      if (!isVerify) {
+        throw new ServiceException(Failed.ILL_LEGAL_JWT_TOKEN);
+      }
       Date expiredTime = signedJWT.getJWTClaimsSet().getExpirationTime();
       if (expiredTime.before(new Date())) {
         throw new ServiceException(Failed.JWT_TOKEN_EXPIRED);

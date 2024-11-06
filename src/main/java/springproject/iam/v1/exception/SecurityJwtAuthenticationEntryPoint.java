@@ -7,12 +7,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import springproject.iam.v1.response.Response;
 
-public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
+public class SecurityJwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
   @Override
   public void commence(
@@ -21,9 +20,6 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
       AuthenticationException authException)
       throws IOException, ServletException {
     GlobalException unauthorized = GlobalException.UNAUTHORIZED;
-    if (authException instanceof InsufficientAuthenticationException) {
-      unauthorized = GlobalException.IDENTITY_NOT_VERIFY;
-    }
     ObjectMapper objectMapper = new ObjectMapper();
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     response.setStatus(HttpStatus.UNAUTHORIZED.value());

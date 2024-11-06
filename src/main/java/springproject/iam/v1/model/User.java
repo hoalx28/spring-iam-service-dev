@@ -13,8 +13,10 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
-import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -29,6 +31,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.NumericBooleanConverter;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import springproject.iam.v1.introspector.UserIntrospector;
 
 @Data
@@ -40,7 +45,7 @@ import springproject.iam.v1.introspector.UserIntrospector;
 @EntityListeners(value = UserIntrospector.class)
 @Table
 @SoftDelete
-public class User implements Serializable {
+public class User implements UserDetails {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   Long id;
@@ -64,7 +69,22 @@ public class User implements Serializable {
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   Set<Status> statuses;
 
-  @ManyToMany
+  @ManyToMany(fetch = FetchType.EAGER)
   @SoftDelete(strategy = SoftDeleteType.ACTIVE, converter = NumericBooleanConverter.class)
   Set<Role> roles;
+
+  @Override
+  public Collection<? extends GrantedAuthority> getAuthorities() {
+    List<GrantedAuthority> authorities = new ArrayList<>();
+    roles.forEach(
+        role -> {
+          authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
+          role.getPrivileges()
+              .forEach(
+                  privilege -> {
+                    authorities.add(new SimpleGrantedAuthority(privilege.getName()));
+                  });
+        });
+    return authorities;
+  }
 }

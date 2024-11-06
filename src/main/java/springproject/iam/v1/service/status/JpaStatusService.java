@@ -8,6 +8,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -47,15 +49,28 @@ public class JpaStatusService implements AbstractStatusService {
     try {
       this.ensureNotExistedByContent(creation.getContent());
       Status model = statusMapper.asModel(creation);
-      Long userId =
-          ((JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication())
-              .getToken()
-              .getClaim("userId");
-      Optional<User> owning = jpaUserRepository.findById(userId);
-      if (!owning.isPresent()) {
-        throw new ServiceException(Failed.OWNING_SIDE_NOT_EXISTS);
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      // TODO: I am too lazy to thinking about how to refactor this, I am also
+      // implement authentication using JWT with both Spring Security and OAuth2
+      // Resource Service, by the way, this is also Tech-stack practice project...
+      if (authentication instanceof JwtAuthenticationToken) {
+        Long userId =
+            ((JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication())
+                .getToken()
+                .getClaim("userId");
+        Optional<User> owning = jpaUserRepository.findById(userId);
+        if (!owning.isPresent()) {
+          throw new ServiceException(Failed.OWNING_SIDE_NOT_EXISTS);
+        }
+        model.setUser(owning.get());
+      } else {
+        User owning =
+            (User)
+                ((UsernamePasswordAuthenticationToken)
+                        SecurityContextHolder.getContext().getAuthentication())
+                    .getPrincipal();
+        model.setUser(owning);
       }
-      model.setUser(owning.get());
       Status saved = jpaStatusRepository.save(model);
       return statusMapper.asResponse(saved);
     } catch (ServiceException e) {
@@ -66,7 +81,7 @@ public class JpaStatusService implements AbstractStatusService {
     }
   }
 
-  @PreAuthorize("hasAnyAuthority('CREATE')")
+  @PreAuthorize("hasAnyAuthority('READ')")
   @Override
   public StatusResponse findById(Long id) {
     try {

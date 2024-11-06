@@ -1,0 +1,42 @@
+version: '3.7'
+
+networks:
+  iam:
+    driver: bridge
+
+volumes:
+  iam:
+    driver: local
+    driver_opts:
+      type: none
+      device: /data
+      o: bind
+
+services:
+  mysql:
+    image: mysql:8.0.34
+    container_name: mysql-8.0.34
+    hostname: mysql-8.0.34
+    networks:
+      - iam
+    ports:
+      - "3307:3306"
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: PBRAGJDejNumgLLyNM4wzFYkq8JA5QXS
+  ws:
+    build: 
+      dockerfile: Dockerfile
+      context: .
+    container_name: ws-0.0.1
+    hostname: ws-0.0.1
+    networks:
+      - iam
+    ports:
+      - "8081:8080"
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      - JPA_DATASOURCE_URL=jdbc:mysql://iam:3306/spring_iam_dev?createDatabaseIfNotExist=true
+      - LIQUIBASE_URL=jdbc:mysql://iam:3306/spring_iam_dev?createDatabaseIfNotExist=true

@@ -1,11 +1,14 @@
 package springproject.iam.v1.service.user;
 
+import org.springframework.security.core.userdetails.UserDetailsService;
 import springproject.iam.v1.model.dto.user.UserCreation;
 import springproject.iam.v1.model.dto.user.UserResponse;
 import springproject.iam.v1.model.dto.user.UserUpdate;
 import springproject.iam.v1.response.MultiResource;
 
 public interface AbstractUserService {
+  UserDetailsService userDetailsService();
+
   void ensureNotExistedByUsername(String username);
 
   UserResponse save(UserCreation creation);
